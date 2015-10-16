@@ -1,6 +1,6 @@
 package edu.rochester.kanishk;
 
-public class Item {
+public class Item implements Comparable<Item> {
 	String category;
 	String itemType;
 	String value;
@@ -36,6 +36,14 @@ public class Item {
 			return false;
 		return true;
 	}
+
+	@Override
+	public int compareTo(Item o) {
+		return itemType.compareTo(o.itemType);
+	}
 	
+	public boolean isLessThan(Item o) {
+		return compareTo(o) < 0;
+	}
 	
 }

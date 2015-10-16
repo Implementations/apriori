@@ -25,7 +25,7 @@ public class Generator {
 	
 	private ExecutorService SERVICE = Executors.newFixedThreadPool(20);
 
-	public void getItems(Path path, int supportCount) throws IOException, InterruptedException {
+	public void generateItems(Path path, int supportCount) throws IOException, InterruptedException {
 		this.transList = Collections.synchronizedList(new ArrayList<>());
 		this.supportCount = supportCount;
 		List<Integer> capitalGain = Collections.synchronizedList(new ArrayList<>());

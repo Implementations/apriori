@@ -12,7 +12,9 @@ public class Run {
 			Path path = FileSystems.getDefault().getPath("", args[0]);
 			Generator generator = new Generator();
 			try {
-				generator.getItems(path, support);
+				generator.generateItems(path, support);
+				ItemSetComputer computer = new ItemSetComputer(generator.transList, 
+						generator.oneItemSet);
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
