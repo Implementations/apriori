@@ -40,7 +40,7 @@ public class Generator {
 		BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), Constants.ENCODING);
 		String line = null;
 		int count = 0;
-		while ((line = reader.readLine()) != null && count < 9) {
+		while ((line = reader.readLine()) != null) {
 			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
 			count++;
 		}

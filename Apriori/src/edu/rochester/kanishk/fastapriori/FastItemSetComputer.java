@@ -77,6 +77,7 @@ public class FastItemSetComputer {
 					}
 				}
 				itemSets = frequentSets;
+				System.out.println("Frequent set count:" + frequentSets.size());
 				itemSetCount++;
 			}
 		} finally {
@@ -110,6 +111,7 @@ public class FastItemSetComputer {
 		}
 		SERVICE.shutdown();
 		SERVICE.awaitTermination(1, TimeUnit.HOURS);
+		System.out.println("Candidates generated:" + (itemSetCount + 1) + "Count: " + candidateSets.size());
 		return candidateSets;
 	}
 
