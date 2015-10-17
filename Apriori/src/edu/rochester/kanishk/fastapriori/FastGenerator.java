@@ -15,7 +15,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import edu.rochester.kanishk.Constants;
-import edu.rochester.kanishk.apriori.Generator.TransactionCreator;
 
 /**
  * @author kanishk
@@ -40,10 +39,8 @@ public class FastGenerator {
 		List<Integer> capitalLoss = Collections.synchronizedList(new ArrayList<>());
 		BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), Constants.ENCODING);
 		String line = null;
-		int count = 0;
-		while ((line = reader.readLine()) != null && count < 9) {
+		while ((line = reader.readLine()) != null) {
 			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
-			count++;
 		}
 		SERVICE.shutdown();
 		SERVICE.awaitTermination(1, TimeUnit.HOURS);
