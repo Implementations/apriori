@@ -1,5 +1,8 @@
 package edu.rochester.kanishk;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 public class Constants {
 	
 	public static final int AGE_INDEX = 0;
@@ -14,6 +17,8 @@ public class Constants {
 	public static final int LOSS_INDEX = 9;
 	public static final int HOURS_INDEX = 10;
 	public static final int COUNTRY_INDEX = 11;
+	
+	public static final Charset ENCODING = StandardCharsets.UTF_8;
 	
 	public static final String GARBAGE = "?";
 	
@@ -38,6 +43,10 @@ public class Constants {
 	public static final String LOW = "low";
 	
 	public static final String HIGH = "high";
+	
+	public static final String GAIN = "gain_";
+	
+	public static final String LOSS = "loss_";
 	
 	public static String[] AGE = {"Private", "Self-emp-not-inc", "Self-emp-inc", "Federal-gov",
 			"Local-gov", "State-gov", "Without-pay", "Never-worked"};

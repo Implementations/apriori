@@ -27,4 +27,17 @@ public class ItemSet {
 		Collections.sort(itemSet);
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for(Item i : itemSet) {
+			sb.append(i.itemType).append(" ,");
+		}
+		sb.append("::count:").append(supportCount);
+		return sb.toString();
+	}
+	
+	public void print() {
+		System.out.println(toString());
+	}
 }

@@ -2,7 +2,6 @@ package edu.rochester.kanishk;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class Generator {
 		this.supportCount = supportCount;
 		List<Integer> capitalGain = Collections.synchronizedList(new ArrayList<>());
 		List<Integer> capitalLoss = Collections.synchronizedList(new ArrayList<>());
-		BufferedReader reader = Files.newBufferedReader(path, Charset.forName("UTF-8"));
+		BufferedReader reader = Files.newBufferedReader(path, Constants.ENCODING);
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
@@ -64,11 +63,11 @@ public class Generator {
 		for(Entry<Item, Integer> e : oneItemSet.entrySet()) {
 			if(e.getValue() >= supportCount) {
 				filteredMap.put(e.getKey(), e.getValue());
-				System.out.println(e.getKey().itemType + " " + e.getValue());
+//				System.out.println(e.getKey().itemType + " " + e.getValue());
 			}
 		}
 		this.oneItemSet = filteredMap;
-		System.out.println("Size :" + oneItemSet.size());
+//		System.out.println("Size :" + oneItemSet.size());
 	}
 
 	public static class TransactionCreator implements Runnable {

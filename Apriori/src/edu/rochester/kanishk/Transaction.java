@@ -1,6 +1,7 @@
 package edu.rochester.kanishk;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +21,8 @@ public class Transaction {
 	}
 
 	public void cleanUp(float gain, float loss, Map<Item, Integer> oneItemSet) {
-		correctValue(gain, itemList.get(Constants.GAIN_INDEX));
-		correctValue(loss, itemList.get(Constants.LOSS_INDEX));
+		correctValue(gain, itemList.get(Constants.GAIN_INDEX), Constants.GAIN);
+		correctValue(loss, itemList.get(Constants.LOSS_INDEX), Constants.LOSS);
 		ageGroup(itemList.get(Constants.AGE_INDEX));
 		hoursGroup(itemList.get(Constants.HOURS_INDEX));
 		List<Item> newList = new ArrayList<>(itemList.size());
@@ -39,17 +40,18 @@ public class Transaction {
 			}
 		}
 		itemList = newList;
+		Collections.sort(itemList);
 	}
 
-	private void correctValue(float correctValue, Item item) {
+	private void correctValue(float correctValue, Item item, String gainLoss) {
 		if (!Constants.GARBAGE.equals(item.value)) {
 			int value = Integer.parseInt(item.value);
 			if (value == 0) {
-				item.itemType = Constants.CAPITAL_NONE;
+				item.itemType = gainLoss + Constants.CAPITAL_NONE;
 			} else if (value < correctValue) {
-				item.itemType = Constants.LOW;
+				item.itemType = gainLoss + Constants.LOW;
 			} else {
-				item.itemType = Constants.HIGH;
+				item.itemType = gainLoss + Constants.HIGH;
 			}
 		}
 	}
@@ -82,5 +84,17 @@ public class Transaction {
 				item.itemType = Constants.BURNOUT;
 			}
 		}
+	}
+	
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for(Item i : itemList) {
+			sb.append(i.itemType).append(" ,");
+		}
+		return sb.toString();
+	}
+	
+	public void print() {
+		System.out.println(toString());
 	}
 }
