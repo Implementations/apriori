@@ -7,9 +7,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -26,21 +28,23 @@ public class FastGenerator {
 	
 	private Map<Item, Integer> oneItemSet;
 	
-	private List<Transaction> transList;
+	private Set<Transaction> transList;
 	
 	private int supportCount;
 	
 	private ExecutorService SERVICE = Executors.newFixedThreadPool(20);
 
 	public void generateItems(String filePath, int supportCount) throws IOException, InterruptedException {
-		this.transList = Collections.synchronizedList(new ArrayList<>());
+		List<Transaction> transactions = Collections.synchronizedList(new ArrayList<>());
 		this.supportCount = supportCount;
 		List<Integer> capitalGain = Collections.synchronizedList(new ArrayList<>());
 		List<Integer> capitalLoss = Collections.synchronizedList(new ArrayList<>());
 		BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), Constants.ENCODING);
 		String line = null;
+		int counter = 0;
 		while ((line = reader.readLine()) != null) {
-			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
+			SERVICE.submit(new TransactionCreator(counter, transactions, line, capitalGain, capitalLoss));
+			counter++;
 		}
 		SERVICE.shutdown();
 		SERVICE.awaitTermination(1, TimeUnit.HOURS);
@@ -48,10 +52,9 @@ public class FastGenerator {
 		Collections.sort(capitalLoss);
 		float medianGain = medianCalculate(capitalGain);
 		float medianLoss = medianCalculate(capitalLoss);
-		generateOneItemSet(transList, medianGain, medianLoss);
-		List<Transaction> transactionList = new ArrayList<>(transList.size());
-		transactionList.addAll(transList);
-		transList = transactionList;
+		generateOneItemSet(transactions, medianGain, medianLoss);
+		transList = new LinkedHashSet<>(transactions.size());
+		transList.addAll(transactions);
 	}
 	
 	private float medianCalculate(List<Integer> sortedList) {
@@ -92,19 +95,21 @@ public class FastGenerator {
 		List<Integer> gain;
 		List<Integer> loss;
 		String value;
+		int id;
 
-		public TransactionCreator(List<Transaction> transList, String value, List<Integer> gain, 
+		public TransactionCreator(int id, List<Transaction> transList, String value, List<Integer> gain, 
 				List<Integer> loss) {
 			this.transList = transList;
 			this.value = value;
 			this.gain = gain;
 			this.loss = loss;
+			this.id = id;
 		}
 
 		@Override
 		public void run() {
 			String[] values = value.split(", ");
-			Transaction transaction = new Transaction();
+			Transaction transaction = new Transaction(this.id);
 			transaction.add("age", values[0], values[0]);
 			transaction.add("work", values[1], values[1]);
 			transaction.add("edu", values[3], values[3]);
@@ -132,7 +137,7 @@ public class FastGenerator {
 		return oneItemSet;
 	}
 
-	public List<Transaction> getTransList() {
+	public Set<Transaction> getTransList() {
 		return transList;
 	}
 }

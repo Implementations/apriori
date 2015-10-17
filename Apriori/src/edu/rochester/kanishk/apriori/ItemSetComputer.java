@@ -123,7 +123,11 @@ public class ItemSetComputer {
 		}
 		return candidateSets;
 	}
-
+	
+	/**
+	 * Finds whether all the k-1 length subsets of candidate set belong to 
+	 * the k-frequent itemset(Lk-1)
+	 */
 	private boolean hasFrequentSubset(List<ItemSet> itemSets, ItemSet candidateSet) {
 		int itemIndex = 0;
 		while (itemIndex < candidateSet.itemSet.size()) {
@@ -141,7 +145,14 @@ public class ItemSetComputer {
 		}
 		return true;
 	}
-
+	
+	/**
+	 * Check if candidate subset equals itemSet or not. Since both are in lexicographic
+	 * order, we can scan index by index. The eliminate index is the index in the candidate set we
+	 * are not evaluating. Since a k-candidate itemset will have k subsets of length k-1. It means
+	 * for every iteration, one element is missing. That element's index is pointed by the
+	 * eliminateIndex parameter.
+	 */
 	private boolean isSubset(List<Item> itemSet, List<Item> candidateSubset, int eliminateIndex) {
 		int counter = 0, itemSetIndex = 0;
 		while (counter < candidateSubset.size()) {
@@ -161,6 +172,7 @@ public class ItemSetComputer {
 		this.writer = Files.newBufferedWriter(path, Constants.ENCODING);
 	}
 
+	/** Writes the k-itemsets to file.*/
 	private void writeLineToFile(List<ItemSet> itemSet) throws IOException {
 		for (ItemSet i : itemSet) {
 			this.writer.write(i.toString());

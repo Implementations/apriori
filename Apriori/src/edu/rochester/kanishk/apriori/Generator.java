@@ -10,16 +10,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import edu.rochester.kanishk.Constants;
 
 /**
  * @author kanishk
  * Generates the transaction data and 1-frequent itemsets. Fields like fnlwght, education num
- * are not taken. Continous fields like age, number of hours, capital gain, capital loss are discretized.
+ * are not taken. Continuous fields like age, number of hours, capital gain, capital loss are discretized.
  * The capital gain and capital loss are collected and their median value is used for grouping.
  */
 public class Generator {
@@ -29,24 +26,18 @@ public class Generator {
 	private List<Transaction> transList;
 	
 	private int supportCount;
-	
-	private ExecutorService SERVICE = Executors.newFixedThreadPool(20);
 
 	public void generateItems(String filePath, int supportCount) throws IOException, InterruptedException {
-		this.transList = Collections.synchronizedList(new ArrayList<>());
+		this.transList = new ArrayList<>();
 		this.supportCount = supportCount;
-		List<Integer> capitalGain = Collections.synchronizedList(new ArrayList<>());
-		List<Integer> capitalLoss = Collections.synchronizedList(new ArrayList<>());
+		List<Integer> capitalGain = new ArrayList<>();
+		List<Integer> capitalLoss = new ArrayList<>();
 		BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), Constants.ENCODING);
 		String line = null;
-		int count = 0;
-		while ((line = reader.readLine()) != null) {
-			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
-			count++;
+		while ((line = reader.readLine()) != null && !line.isEmpty()) {
+			createTransaction(transList, line, capitalGain, capitalLoss);
 		}
 		reader.close();
-		SERVICE.shutdown();
-		SERVICE.awaitTermination(1, TimeUnit.HOURS);
 		Collections.sort(capitalGain);
 		Collections.sort(capitalLoss);
 		float medianGain = medianCalculate(capitalGain);
@@ -87,44 +78,29 @@ public class Generator {
 	 * Removes redundant fields from the transaction. Also adds the capital gain and
 	 * loss values to calculate the median values.
 	 */
-	public static class TransactionCreator implements Runnable {
-		List<Transaction> transList;
-		List<Integer> gain;
-		List<Integer> loss;
-		String value;
-
-		public TransactionCreator(List<Transaction> transList, String value, List<Integer> gain, 
-				List<Integer> loss) {
-			this.transList = transList;
-			this.value = value;
-			this.gain = gain;
-			this.loss = loss;
+	private void createTransaction(List<Transaction> transList, String value, List<Integer> gain, 
+			List<Integer> loss) {
+		String[] values = value.split(", ");
+		Transaction transaction = new Transaction();
+		transaction.add("age", values[0], values[0]);
+		transaction.add("work", values[1], values[1]);
+		transaction.add("edu", values[3], values[3]);
+		transaction.add("marital", values[5], values[5]);
+		transaction.add("job", values[6], values[6]);
+		transaction.add("rel", values[7], values[7]);
+		transaction.add("race", values[8], values[8]);
+		transaction.add("sex", values[9], values[9]);
+		transaction.add("gain", values[10], values[10]);
+		transaction.add("loss", values[11], values[11]);
+		transaction.add("hours", values[12], values[12]);
+		transaction.add("country", values[13], values[13]);
+		transaction.add("status", values[14], values[14]);
+		transList.add(transaction);
+		if(!values[10].equals(Constants.GARBAGE)) {
+			gain.add(Integer.parseInt(values[10]));
 		}
-
-		@Override
-		public void run() {
-			String[] values = value.split(", ");
-			Transaction transaction = new Transaction();
-			transaction.add("age", values[0], values[0]);
-			transaction.add("work", values[1], values[1]);
-			transaction.add("edu", values[3], values[3]);
-			transaction.add("marital", values[5], values[5]);
-			transaction.add("job", values[6], values[6]);
-			transaction.add("rel", values[7], values[7]);
-			transaction.add("race", values[8], values[8]);
-			transaction.add("sex", values[9], values[9]);
-			transaction.add("gain", values[10], values[10]);
-			transaction.add("loss", values[11], values[11]);
-			transaction.add("hours", values[12], values[12]);
-			transaction.add("country", values[13], values[13]);
-			transaction.add("status", values[14], values[14]);
-			transList.add(transaction);
-			if(!values[10].equals(Constants.GARBAGE)) {
-				gain.add(Integer.parseInt(values[10]));
-			}
-			if(!values[11].equals(Constants.GARBAGE)) {
-				loss.add(Integer.parseInt(values[11]));
-			}
+		if(!values[11].equals(Constants.GARBAGE)) {
+			loss.add(Integer.parseInt(values[11]));
 		}
 	}
 

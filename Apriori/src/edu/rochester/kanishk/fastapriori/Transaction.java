@@ -10,11 +10,16 @@ import java.util.Set;
 import edu.rochester.kanishk.Constants;
 
 public class Transaction {
+	
+	/** This list is cleaned up after all the items are moved into set*/
 	private List<Item> itemList;
 	
 	Set<Item> itemSet;
+	
+	int id;
 
-	public Transaction() {
+	public Transaction(int id) {
+		this.id = id;
 		this.itemList = new ArrayList<>(12);
 		this.itemSet = new LinkedHashSet<>(12);
 	}
@@ -120,5 +125,24 @@ public class Transaction {
 	
 	public void print() {
 		System.out.println(toString());
+	}
+
+	@Override
+	public int hashCode() {
+		return id;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Transaction other = (Transaction) obj;
+		if (id != other.id)
+			return false;
+		return true;
 	}
 }

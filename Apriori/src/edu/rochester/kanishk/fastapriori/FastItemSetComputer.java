@@ -5,21 +5,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import edu.rochester.kanishk.Constants;
-import edu.rochester.kanishk.fastapriori.ItemSet;
-import edu.rochester.kanishk.fastapriori.Transaction;
 
 /**
  * This class computes the k-frequent itemsets where k > 2 
@@ -27,24 +22,19 @@ import edu.rochester.kanishk.fastapriori.Transaction;
  */
 public class FastItemSetComputer {
 
-	private List<Transaction> trnasactionList;
+	private Set<Transaction> trnasactionSet;
 
 	private Set<ItemSet> itemSets;
 
 	private BufferedWriter writer;
-	
-	private static int THREAD_POOL_SIZE = 20;
-	
-	private static ExecutorService SERVICE;
 
-	public FastItemSetComputer(List<Transaction> trnasactionList, Map<Item, Integer> oneItemSet) {
-		this.trnasactionList = trnasactionList;
+	public FastItemSetComputer(Set<Transaction> trnasactionList, Map<Item, Integer> oneItemSet) {
+		this.trnasactionSet = trnasactionList;
 		createItemSet(oneItemSet);
 	}
 	
 	private void createItemSet(Map<Item, Integer> oneItemSet) {
 		this.itemSets = new LinkedHashSet<>();
-		System.out.println("Threadpool::" + THREAD_POOL_SIZE);
 		for (Entry<Item, Integer> e : oneItemSet.entrySet()) {
 			ItemSet i = new ItemSet(new LinkedHashSet<>(), e.getValue());
 			i.itemSet.add(e.getKey());
@@ -52,42 +42,54 @@ public class FastItemSetComputer {
 		}
 	}
 	
-	public void generateKItemSets(int supportCount, String ouputFile) throws IOException, 
-						InterruptedException, ExecutionException {
+	public void generateKItemSets(int supportCount, String ouputFile) throws IOException {
 		int itemSetCount = 1;
 		createFileStream(ouputFile);
 		try {
 			while (!itemSets.isEmpty()) {
 				writeLineToFile(itemSets);
-				SERVICE = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 				Set<ItemSet> candidateSets = aprioriGen(itemSets, itemSetCount);
-				for (Transaction t : trnasactionList) {
+				List<Transaction> removeList = new ArrayList<>();
+				for (Transaction t : trnasactionSet) {
 					//For each itemset in candidate set, check if it occurs in the transaction
+					boolean hasFrequentItem = false;
 					for (ItemSet i : candidateSets) {
 						if (candidateInTransaction(t, i)) {
 							i.count += 1;
+							hasFrequentItem = true;
 						}
 					}
-				}
-				Set<ItemSet> frequentSets = new LinkedHashSet<>();
-				//If count is greater than support count, add to k-frequent itemset
-				for (ItemSet i : candidateSets) {
-					if (i.count >= supportCount) {
-						frequentSets.add(i);
+					if(!hasFrequentItem) {
+						removeList.add(t);
 					}
 				}
-				itemSets = frequentSets;
-				System.out.println("Frequent set count:" + frequentSets.size());
+				filterTransactions(removeList);
+				generateFrequentItemFromCandidates(candidateSets, supportCount);
 				itemSetCount++;
 			}
 		} finally {
 			if(writer != null) {
 				writer.close();
-				SERVICE.shutdown();
 			}
 		}
 	}
 	
+	
+	private void filterTransactions(List<Transaction> removeList) {
+		trnasactionSet.removeAll(removeList);
+	}
+	
+	/** Create k-frequent itemset Lk from Ck*/
+	private void generateFrequentItemFromCandidates(Set<ItemSet> candidateSets, int supportCount) {
+		Set<ItemSet> frequentSets = new LinkedHashSet<>();
+		//If count is greater than support count, add to k-frequent itemset
+		for (ItemSet i : candidateSets) {
+			if (i.count >= supportCount) {
+				frequentSets.add(i);
+			}
+		}
+		itemSets = frequentSets;
+	}
 	
 	/**
 	 * Checks if the transaction contains the candidate itemset i.
@@ -100,19 +102,70 @@ public class FastItemSetComputer {
 
 	/**
 	 * Generates the candidate sets of length itemSetCount + 1
-	 * @throws InterruptedException 
 	 */
-	private Set<ItemSet> aprioriGen(Set<ItemSet> itemSets, int itemSetCount) throws InterruptedException {
-		Set<ItemSet> candidateSets = Collections.newSetFromMap(new ConcurrentHashMap<>());
+	private Set<ItemSet> aprioriGen(Set<ItemSet> itemSets, int itemSetCount) {
+		Set<ItemSet> candidateSets = new LinkedHashSet<>();
 		for (ItemSet itemSet : itemSets) {
 			for (ItemSet itemSet2 : itemSets) {
-				SERVICE.execute(new CandidateSetThread(itemSets, itemSet, itemSet2, candidateSets));
+				int i = 0;
+				boolean join = true;
+				ItemSet candidateSet = new ItemSet();
+				/*Perform join operations between frequent itemsets
+				 * The itemsets are maintained in a lexicographic order
+				 */
+				Iterator<Item> itemSetIterator = itemSet.itemSet.iterator();
+				Iterator<Item> itemSet2Iterator = itemSet2.itemSet.iterator();
+				while (itemSetIterator.hasNext() && itemSet2Iterator.hasNext()) {
+					// Checking condition l1[1] = l2[1] ^ l1[2] = l2[2] ^.....^ l1[k -1] < l2[k -1]					
+					Item item1 = itemSetIterator.next();
+					Item item2 = itemSet2Iterator.next();
+					if (i == itemSetCount - 1) {
+						join = join && item1.isLessThan(item2);
+						candidateSet.addItem(item1);
+						candidateSet.addItem(item2);
+					} else {
+						join = join && item1.equals(item2);
+						candidateSet.addItem(item1);
+					}
+					if (!join) {
+						break;
+					}
+					i++;
+				}
+				if (join) {
+					// Prune the candidate set
+					if (hasFrequentSubset(itemSets, candidateSet)) {
+						candidateSets.add(candidateSet);
+					}
+				}
 			}
 		}
-		SERVICE.shutdown();
-		SERVICE.awaitTermination(1, TimeUnit.HOURS);
-		System.out.println("Candidates generated:" + (itemSetCount + 1) + "Count: " + candidateSets.size());
 		return candidateSets;
+	}
+	
+	/**
+	 * Finds whether all the k-1 length subsets of candidate set belong to 
+	 * the k-frequent itemset(Lk-1)
+	 */
+	private boolean hasFrequentSubset(Set<ItemSet> itemSets, ItemSet candidateSet) {;
+		Set<Item> tempSet = new HashSet<>();
+		tempSet.addAll(candidateSet.itemSet);
+		//Use hashsets to reduce the lookup time 
+		for(Item i : candidateSet.itemSet) {
+			boolean found = false;
+			tempSet.remove(i);
+			for(ItemSet itemSet : itemSets) {
+				if(itemSet.itemSet.containsAll(tempSet)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				return false;
+			}
+			tempSet.add(i);
+		}
+		return true;
 	}
 
 	private void createFileStream(String fileName) throws IOException {
@@ -125,9 +178,5 @@ public class FastItemSetComputer {
 			this.writer.write(i.toString());
 			this.writer.newLine();
 		}
-	}
-	
-	public static void setThreadPool(int threadPoolSize) {
-		THREAD_POOL_SIZE = threadPoolSize;
 	}
 }

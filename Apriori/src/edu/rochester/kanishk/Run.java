@@ -9,10 +9,9 @@ import edu.rochester.kanishk.fastapriori.FastGenerator;
 import edu.rochester.kanishk.fastapriori.FastItemSetComputer;
 
 /**
- * Running arguments: support_count input_file output_file run_option threadpool_count
+ * Running arguments: support_count input_file output_file run_option
  * The first 3 arguments are mandatory. The next two are optional.
- * To run faster apriori, put 2 in run option. Use threadpool_count to put the number of
- * threadpool.
+ * To run faster apriori, put 2 in run option.
  */
 public class Run {
 
@@ -38,9 +37,6 @@ public class Run {
 		}
 		try {
 			if(option == 2) {
-				if(args.length == 5) {
-					FastItemSetComputer.setThreadPool(Integer.parseInt(args[4]));
-				}
 				aprioriOptimized(inputFile, outputFile, support);
 			} else {
 				apriori(inputFile, outputFile, support);
@@ -61,7 +57,7 @@ public class Run {
 
 	private static void aprioriOptimized(String fileName, String outputFile, int supportCount) throws IOException, 
 					InterruptedException, ExecutionException {
-		System.out.println("Using parallel apriori...............");		
+		System.out.println("Using optimized apriori...............");		
 		FastGenerator generator = new FastGenerator();
 		generator.generateItems(fileName, supportCount);
 		FastItemSetComputer computer = new FastItemSetComputer(generator.getTransList(), 
