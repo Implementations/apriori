@@ -2,16 +2,21 @@ package edu.rochester.kanishk.fastapriori;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import edu.rochester.kanishk.Constants;
 
 public class Transaction {
-	List<Item> itemList;
+	private List<Item> itemList;
+	
+	Set<Item> itemSet;
 
 	public Transaction() {
 		this.itemList = new ArrayList<>(12);
+		this.itemSet = new LinkedHashSet<>(12);
 	}
 
 	public void add(String category, String itemType, String value) {
@@ -48,8 +53,9 @@ public class Transaction {
 				}
 			}
 		}
-		itemList = newList;
-		Collections.sort(itemList);
+		itemList = null;
+		Collections.sort(newList);
+		itemSet.addAll(newList);
 	}
 
 	private void correctValue(float correctValue, Item item, String gainLoss) {

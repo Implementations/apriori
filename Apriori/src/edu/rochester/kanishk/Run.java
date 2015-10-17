@@ -15,8 +15,8 @@ public class Run {
 			String inputFile = args[1];
 			String outputFile = args[2];
 			int option = 0;
-			if(args.length == 3) {
-				option = Integer.parseInt(args[2]);
+			if(args.length > 3) {
+				option = Integer.parseInt(args[3]);
 			}
 			try {
 				if(option == 2) {
