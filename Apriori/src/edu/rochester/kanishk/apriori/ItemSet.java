@@ -1,17 +1,20 @@
-package edu.rochester.kanishk;
+package edu.rochester.kanishk.apriori;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * The class to represent a list of items and their support count
+ * */
 public class ItemSet {
 	
 	List<Item> itemSet;
 	
-	int supportCount;
+	int count;
 	
 	public ItemSet(List<Item> itemSet, int supportCount) {
-		this.supportCount = supportCount;
+		this.count = supportCount;
 		this.itemSet = itemSet;
 	}
 	
@@ -29,11 +32,12 @@ public class ItemSet {
 	
 	@Override
 	public String toString() {
+		 // Getsall the items in the itemset as a string.
 		StringBuilder sb = new StringBuilder();
 		for(Item i : itemSet) {
 			sb.append(i.itemType).append(" ,");
 		}
-		sb.append("::count:").append(supportCount);
+		sb.append("::count:").append(count);
 		return sb.toString();
 	}
 	

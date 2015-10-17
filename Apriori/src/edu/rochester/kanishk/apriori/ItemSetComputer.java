@@ -1,4 +1,4 @@
-package edu.rochester.kanishk;
+package edu.rochester.kanishk.apriori;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -10,6 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import edu.rochester.kanishk.Constants;
+
+/**
+ * This class computes the k-frequent itemsets where k > 2 
+ * @author kanishk
+ */
 public class ItemSetComputer {
 
 	private List<Transaction> trnasactionList;
@@ -22,7 +28,7 @@ public class ItemSetComputer {
 		this.trnasactionList = trnasactionList;
 		createItemSet(oneItemSet);
 	}
-
+	
 	private void createItemSet(Map<Item, Integer> oneItemSet) {
 		this.itemSets = new ArrayList<>();
 		for (Entry<Item, Integer> e : oneItemSet.entrySet()) {
@@ -31,7 +37,7 @@ public class ItemSetComputer {
 			itemSets.add(i);
 		}
 	}
-
+	
 	public void generateKItemSets(int supportCount, String ouputFile) throws IOException {
 		int itemSetCount = 1;
 		createFileStream(ouputFile);
@@ -40,15 +46,17 @@ public class ItemSetComputer {
 				writeLineToFile(itemSets);
 				List<ItemSet> candidateSets = aprioriGen(itemSets, itemSetCount);
 				for (Transaction t : trnasactionList) {
+					//For each itemset in candidate set, check if it occurs in the transaction
 					for (ItemSet i : candidateSets) {
 						if (candidateInTransaction(t, i)) {
-							i.supportCount += 1;
+							i.count += 1;
 						}
 					}
 				}
 				List<ItemSet> frequentSets = new ArrayList<>();
+				//If count is greater than support count, add to k-frequent itemset
 				for (ItemSet i : candidateSets) {
-					if (i.supportCount >= supportCount) {
+					if (i.count >= supportCount) {
 						frequentSets.add(i);
 					}
 				}
@@ -61,7 +69,10 @@ public class ItemSetComputer {
 			}
 		}
 	}
-
+	
+	/**
+	 * Checks if the transaction contains the candidate itemset i.
+	 */
 	private boolean candidateInTransaction(Transaction trans, ItemSet i) {
 		int itemSetIndex = 0, candidateSetIndex = 0;
 		List<Item> itemSet = i.itemSet;
@@ -75,6 +86,9 @@ public class ItemSetComputer {
 		return itemSetIndex == itemSet.size();
 	}
 
+	/**
+	 * Generates the candidate sets of length itemSetCount + 1
+	 */
 	private List<ItemSet> aprioriGen(List<ItemSet> itemSets, int itemSetCount) {
 		List<ItemSet> candidateSets = new ArrayList<>();
 		for (ItemSet itemSet : itemSets) {
@@ -82,7 +96,9 @@ public class ItemSetComputer {
 				int i = 0;
 				boolean join = true;
 				ItemSet candidateSet = new ItemSet();
+				//Perform join operations between frequent itemsets
 				while (i < itemSetCount) {
+					// Checking condition l1[1] = l2[1] ^ l1[2] = l2[2] ^.....^ l1[k -1] < l2[k -1]
 					if (i == itemSetCount - 1) {
 						join = join && itemSet.itemSet.get(i).isLessThan(itemSet2.itemSet.get(i));
 						candidateSet.addItem(itemSet.itemSet.get(i));
@@ -98,6 +114,7 @@ public class ItemSetComputer {
 				}
 				if (join) {
 					candidateSet.sortItems();
+					// Prune the candidate set
 					if (hasFrequentSubset(itemSets, candidateSet)) {
 						candidateSets.add(candidateSet);
 					}

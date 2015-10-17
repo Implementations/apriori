@@ -1,9 +1,11 @@
-package edu.rochester.kanishk;
+package edu.rochester.kanishk.fastapriori;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import edu.rochester.kanishk.Constants;
 
 public class Transaction {
 	List<Item> itemList;
@@ -19,7 +21,14 @@ public class Transaction {
 	public void add(Item item) {
 		itemList.add(item);
 	}
-
+	
+	
+	/**
+	 * Takes the median capital gain and capital loss value to use for grouping. The grouping is
+	 * as follows.
+	 * None:0, 0 < Low <= median, High > median.
+	 * The discrete values are: gain_none, gain_low, gain_high. Same goes for capital loss. 
+	 */
 	public void cleanUp(float gain, float loss, Map<Item, Integer> oneItemSet) {
 		correctValue(gain, itemList.get(Constants.GAIN_INDEX), Constants.GAIN);
 		correctValue(loss, itemList.get(Constants.LOSS_INDEX), Constants.LOSS);
@@ -55,7 +64,10 @@ public class Transaction {
 			}
 		}
 	}
-
+	
+	/**
+	 * Age into group
+	 */
 	private void ageGroup(Item item) {
 		if (!Constants.GARBAGE.equals(item.value)) {
 			int value = Integer.parseInt(item.value);
@@ -71,6 +83,9 @@ public class Transaction {
 		}
 	}
 
+	/**
+	 * Working hours into group
+	 */
 	private void hoursGroup(Item item) {
 		if (!Constants.GARBAGE.equals(item.value)) {
 			int value = Integer.parseInt(item.value);
@@ -86,6 +101,9 @@ public class Transaction {
 		}
 	}
 	
+	/**
+	 * Gets all the items in the transaction as a string.
+	 */
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		for(Item i : itemList) {

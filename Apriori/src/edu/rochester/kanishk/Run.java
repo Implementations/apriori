@@ -4,28 +4,44 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import edu.rochester.kanishk.apriori.Generator;
+import edu.rochester.kanishk.apriori.ItemSetComputer;
+
 public class Run {
 
 	public static void main(String args[]) {
-		if(args.length >= 2) {
+		if (args.length >= 2) {
 			Integer support = Integer.parseInt(args[0]);
-			Path path = Paths.get(args[1]);
-			String ouputFile = args[2];
-			Generator generator = new Generator();
+			String inputFile = args[1];
+			String outputFile = args[2];
+			int option = 0;
+			if(args.length == 3) {
+				option = Integer.parseInt(args[2]);
+			}
 			try {
-				generator.generateItems(path, support);
-				ItemSetComputer computer = new ItemSetComputer(generator.transList, 
-						generator.oneItemSet);
-				computer.generateKItemSets(support, ouputFile);
+				if(option == 2) {
+					aprioriOptimized(inputFile, outputFile, support);
+				} else {
+					apriori(inputFile, outputFile, support);
+				}
 			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} else {
-			System.out.println("Invalid input. Enter the program arguments as:"
-					+ "<support_count> <input_file> <output_file>");
+			System.out.println(
+					"Invalid input. Enter the program arguments as:" + "<support_count> <input_file> <output_file>");
 		}
 	}
-	
-	
+
+	private static void apriori(String fileName, String outputFile, int supportCount) throws IOException, InterruptedException {
+		Generator generator = new Generator();
+		generator.generateItems(fileName, supportCount);
+		ItemSetComputer computer = new ItemSetComputer(generator.getTransList(), generator.getOneItemSet());
+		computer.generateKItemSets(supportCount, outputFile);
+	}
+
+	private static void aprioriOptimized(String fileName, String outputFile, int supportCount) {
+	}
+
 }

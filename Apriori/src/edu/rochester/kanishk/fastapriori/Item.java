@@ -1,8 +1,19 @@
-package edu.rochester.kanishk;
+package edu.rochester.kanishk.fastapriori;
 
+/**
+ * The item class represents a single item in a transaction.
+ */
 public class Item implements Comparable<Item> {
+	/** The category of the item. Age, hours_per_week etc.*/
 	String category;
+	
+	/** The type of item. This is used to identify a unique item in transaction.
+	 * The continous values group is also stored in this field.*/
 	String itemType;
+
+	/**The actual value of the item. For example age value the itemType will hold the group value(
+	 * youth, senior etc.). This field will hold the actual numeric value. 
+	 * */
 	String value;
 	
 	public Item(String category, String itemType, String value) {

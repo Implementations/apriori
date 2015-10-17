@@ -1,9 +1,9 @@
-package edu.rochester.kanishk;
+package edu.rochester.kanishk.apriori;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,26 +14,35 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import edu.rochester.kanishk.Constants;
+
+/**
+ * @author kanishk
+ * Generates the transaction data and 1-frequent itemsets. Fields like fnlwght, education num
+ * are not taken. Continous fields like age, number of hours, capital gain, capital loss are discretized.
+ * The capital gain and capital loss are collected and their median value is used for grouping.
+ */
 public class Generator {
 	
-	Map<Item, Integer> oneItemSet;
+	private Map<Item, Integer> oneItemSet;
 	
-	List<Transaction> transList;
+	private List<Transaction> transList;
 	
-	int supportCount;
+	private int supportCount;
 	
 	private ExecutorService SERVICE = Executors.newFixedThreadPool(20);
 
-	public void generateItems(Path path, int supportCount) throws IOException, InterruptedException {
+	public void generateItems(String filePath, int supportCount) throws IOException, InterruptedException {
 		this.transList = Collections.synchronizedList(new ArrayList<>());
 		this.supportCount = supportCount;
 		List<Integer> capitalGain = Collections.synchronizedList(new ArrayList<>());
 		List<Integer> capitalLoss = Collections.synchronizedList(new ArrayList<>());
-		BufferedReader reader = Files.newBufferedReader(path, Constants.ENCODING);
+		BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), Constants.ENCODING);
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
 		}
+		reader.close();
 		SERVICE.shutdown();
 		SERVICE.awaitTermination(1, TimeUnit.HOURS);
 		Collections.sort(capitalGain);
@@ -53,6 +62,9 @@ public class Generator {
 		}
 	}
 	
+	/**
+	 * Generate frequent one itemset.
+	 */
 	private void generateOneItemSet(List<Transaction> transactions, 
 			float medianGain, float medianLoss) {
 		this.oneItemSet = new HashMap<>();
@@ -63,13 +75,16 @@ public class Generator {
 		for(Entry<Item, Integer> e : oneItemSet.entrySet()) {
 			if(e.getValue() >= supportCount) {
 				filteredMap.put(e.getKey(), e.getValue());
-//				System.out.println(e.getKey().itemType + " " + e.getValue());
 			}
 		}
 		this.oneItemSet = filteredMap;
-//		System.out.println("Size :" + oneItemSet.size());
 	}
-
+	
+	/**
+	 * Takes a single line from data file and creates transaction object from it.
+	 * Removes redundant fields from the transaction. Also adds the capital gain and
+	 * loss values to calculate the median values.
+	 */
 	public static class TransactionCreator implements Runnable {
 		List<Transaction> transList;
 		List<Integer> gain;
@@ -109,5 +124,13 @@ public class Generator {
 				loss.add(Integer.parseInt(values[11]));
 			}
 		}
+	}
+
+	public Map<Item, Integer> getOneItemSet() {
+		return oneItemSet;
+	}
+
+	public List<Transaction> getTransList() {
+		return transList;
 	}
 }
