@@ -20,8 +20,8 @@ public class Transaction {
 
 	public Transaction(int id) {
 		this.id = id;
-		this.itemList = new ArrayList<>(12);
-		this.itemSet = new LinkedHashSet<>(12);
+		this.itemList = new ArrayList<>(13);
+		this.itemSet = new LinkedHashSet<>(13);
 	}
 
 	public void add(String category, String itemType, String value) {
