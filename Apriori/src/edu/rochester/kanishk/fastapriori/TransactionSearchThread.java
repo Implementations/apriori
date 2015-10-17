@@ -1,9 +1,8 @@
 package edu.rochester.kanishk.fastapriori;
 
 import java.util.Set;
-import java.util.concurrent.Callable;
 
-public class TransactionSearchThread implements Callable<Void> {
+public class TransactionSearchThread implements Runnable {
 	
 	private Transaction transaction;
 	
@@ -15,11 +14,10 @@ public class TransactionSearchThread implements Callable<Void> {
 	}
 
 	@Override
-	public Void call() throws Exception {
+	public void run() {
 		if (candidateInTransaction(transaction, itemSet)) {
 			itemSet.count += 1;
 		}
-		return null;
 	}
 	
 	/**

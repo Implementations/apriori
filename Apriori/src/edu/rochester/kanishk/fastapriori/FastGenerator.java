@@ -49,6 +49,9 @@ public class FastGenerator {
 		float medianGain = medianCalculate(capitalGain);
 		float medianLoss = medianCalculate(capitalLoss);
 		generateOneItemSet(transList, medianGain, medianLoss);
+		List<Transaction> transactionList = new ArrayList<>(transList.size());
+		transactionList.addAll(transList);
+		transList = transactionList;
 	}
 	
 	private float medianCalculate(List<Integer> sortedList) {

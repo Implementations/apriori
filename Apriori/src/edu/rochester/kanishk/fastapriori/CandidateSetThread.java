@@ -3,24 +3,27 @@ package edu.rochester.kanishk.fastapriori;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
-public class CandidateSetThread implements Callable<ItemSet> {
+public class CandidateSetThread implements Runnable {
 
 	private ItemSet itemSet;
 
 	private ItemSet itemSet2;
 
 	private Set<ItemSet> frequentItemSet;
+	
+	private Set<ItemSet> candidateSets;
 
-	public CandidateSetThread(Set<ItemSet> frequentItemSet, ItemSet itemSet, ItemSet itemSet2) {
+	public CandidateSetThread(Set<ItemSet> frequentItemSet, ItemSet itemSet, ItemSet itemSet2, 
+			Set<ItemSet> candidateSet) {
 		this.itemSet = itemSet;
 		this.itemSet2 = itemSet2;
 		this.frequentItemSet = frequentItemSet;
+		this.candidateSets = candidateSet;
 	}
 
 	@Override
-	public ItemSet call() throws Exception {
+	public void run() {
 		int i = 0;
 		boolean join = true;
 		ItemSet candidateSet = new ItemSet();
@@ -44,10 +47,6 @@ public class CandidateSetThread implements Callable<ItemSet> {
 				join = join && item1.equals(item2);
 				candidateSet.addItem(item1);
 			}
-			String threadName = Thread.currentThread().getName();
-//			System.out.println(threadName + "::" + itemSet.toString());
-//			System.out.println(threadName + "::" + itemSet2.toString());
-//			System.out.println(threadName + "::" + candidateSet.toString());
 			if (!join) {
 				break;
 			}
@@ -55,9 +54,7 @@ public class CandidateSetThread implements Callable<ItemSet> {
 		}
 		if (join && hasFrequentSubset(frequentItemSet, candidateSet)) {
 			// Prune the candidate set
-			return candidateSet;
-		} else {
-			return null;
+			this.candidateSets.add(candidateSet);
 		}
 	}
 

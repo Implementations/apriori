@@ -5,18 +5,21 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import edu.rochester.kanishk.Constants;
+import edu.rochester.kanishk.fastapriori.ItemSet;
+import edu.rochester.kanishk.fastapriori.Transaction;
 
 /**
  * This class computes the k-frequent itemsets where k > 2 
@@ -32,7 +35,7 @@ public class FastItemSetComputer {
 	
 	private static int THREAD_POOL_SIZE = 20;
 	
-	private static ExecutorService SERVICE = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+	private static ExecutorService SERVICE;
 
 	public FastItemSetComputer(List<Transaction> trnasactionList, Map<Item, Integer> oneItemSet) {
 		this.trnasactionList = trnasactionList;
@@ -56,15 +59,14 @@ public class FastItemSetComputer {
 		try {
 			while (!itemSets.isEmpty()) {
 				writeLineToFile(itemSets);
+				SERVICE = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 				Set<ItemSet> candidateSets = aprioriGen(itemSets, itemSetCount);
 				for (Transaction t : trnasactionList) {
 					//For each itemset in candidate set, check if it occurs in the transaction
-					List<Future<Void>> transactions = new ArrayList<>(candidateSets.size());
 					for (ItemSet i : candidateSets) {
-						transactions.add(SERVICE.submit(new TransactionSearchThread(t, i)));
-					}
-					for(Future<Void> f : transactions) {
-						f.get();
+						if (candidateInTransaction(t, i)) {
+							i.count += 1;
+						}
 					}
 				}
 				Set<ItemSet> frequentSets = new LinkedHashSet<>();
@@ -84,29 +86,30 @@ public class FastItemSetComputer {
 			}
 		}
 	}
+	
+	
+	/**
+	 * Checks if the transaction contains the candidate itemset i.
+	 */
+	private boolean candidateInTransaction(Transaction trans, ItemSet i) {
+		Set<Item> itemSet = i.itemSet;
+		Set<Item> transaction = trans.itemSet;
+		return transaction.containsAll(itemSet);
+	}
 
 	/**
 	 * Generates the candidate sets of length itemSetCount + 1
+	 * @throws InterruptedException 
 	 */
-	private Set<ItemSet> aprioriGen(Set<ItemSet> itemSets, int itemSetCount) {
-		Set<ItemSet> candidateSets = new LinkedHashSet<>();
-		List<Future<ItemSet>> futureItems = new ArrayList<>();
+	private Set<ItemSet> aprioriGen(Set<ItemSet> itemSets, int itemSetCount) throws InterruptedException {
+		Set<ItemSet> candidateSets = Collections.newSetFromMap(new ConcurrentHashMap<>());
 		for (ItemSet itemSet : itemSets) {
 			for (ItemSet itemSet2 : itemSets) {
-				futureItems.add(SERVICE.submit(new CandidateSetThread(itemSets, itemSet, itemSet2)));
+				SERVICE.execute(new CandidateSetThread(itemSets, itemSet, itemSet2, candidateSets));
 			}
 		}
-		for(Future<ItemSet> f : futureItems) {
-			ItemSet i;
-			try {
-				i = f.get();
-				if(i != null) {
-					candidateSets.add(i);	
-				}
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
-			}
-		}
+		SERVICE.shutdown();
+		SERVICE.awaitTermination(1, TimeUnit.HOURS);
 		return candidateSets;
 	}
 
