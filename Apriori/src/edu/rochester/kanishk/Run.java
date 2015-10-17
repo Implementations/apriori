@@ -1,11 +1,11 @@
 package edu.rochester.kanishk;
 
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import edu.rochester.kanishk.apriori.Generator;
 import edu.rochester.kanishk.apriori.ItemSetComputer;
+import edu.rochester.kanishk.fastapriori.FastGenerator;
+import edu.rochester.kanishk.fastapriori.FastItemSetComputer;
 
 public class Run {
 
@@ -41,7 +41,12 @@ public class Run {
 		computer.generateKItemSets(supportCount, outputFile);
 	}
 
-	private static void aprioriOptimized(String fileName, String outputFile, int supportCount) {
+	private static void aprioriOptimized(String fileName, String outputFile, int supportCount) throws IOException, InterruptedException {
+		FastGenerator generator = new FastGenerator();
+		generator.generateItems(fileName, supportCount);
+		FastItemSetComputer computer = new FastItemSetComputer(generator.getTransList(), 
+				generator.getOneItemSet());
+		computer.generateKItemSets(supportCount, outputFile);
 	}
 
 }

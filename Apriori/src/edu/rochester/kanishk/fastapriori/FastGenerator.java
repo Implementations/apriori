@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,12 +33,12 @@ public class FastGenerator {
 	
 	private ExecutorService SERVICE = Executors.newFixedThreadPool(20);
 
-	public void generateItems(Path path, int supportCount) throws IOException, InterruptedException {
+	public void generateItems(String filePath, int supportCount) throws IOException, InterruptedException {
 		this.transList = Collections.synchronizedList(new ArrayList<>());
 		this.supportCount = supportCount;
 		List<Integer> capitalGain = Collections.synchronizedList(new ArrayList<>());
 		List<Integer> capitalLoss = Collections.synchronizedList(new ArrayList<>());
-		BufferedReader reader = Files.newBufferedReader(path, Constants.ENCODING);
+		BufferedReader reader = Files.newBufferedReader(Paths.get(filePath), Constants.ENCODING);
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			SERVICE.submit(new TransactionCreator(transList, line, capitalGain, capitalLoss));
