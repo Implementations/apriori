@@ -10,8 +10,12 @@ import edu.rochester.kanishk.fastapriori.FastItemSetComputer;
 
 /**
  * Running arguments: support_count input_file output_file run_option
- * The first 3 arguments are mandatory. The next two are optional.
- * To run faster apriori, put 2 in run option.
+ * The first 3 arguments are mandatory. The next one is optional.
+ * To run faster apriori, put 2 as the last argument.
+ * Running command:
+ * java -jar -Xms1024m -Xmx2048m Apriori.jar support_count data_file_path output_file_path
+ * For running optimized Apriori:
+ * java -jar -Xms1024m -Xmx2048m Apriori.jar support_count data_file_path output_file_path 2.
  */
 public class Run {
 
@@ -38,11 +42,12 @@ public class Run {
 		try {
 			if(option == 2) {
 				aprioriOptimized(inputFile, outputFile, support);
+				System.out.println("Optmized Apriori run complete");
 			} else {
 				apriori(inputFile, outputFile, support);
+				System.out.println("Apriori run complete");
 			}
 		} catch (IOException | InterruptedException | ExecutionException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
