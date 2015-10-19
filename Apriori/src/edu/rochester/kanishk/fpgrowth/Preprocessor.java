@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import edu.rochester.kanishk.Constants;
-import edu.rochester.kanishk.fpgrowth.Item.Header;
 
 /**
  * @author kanishk
@@ -71,7 +70,7 @@ public class Preprocessor {
 		}
 		for(Entry<Item, Integer> e : itemCountMap.entrySet()) {
 			if(e.getValue() >= supportCount) {
-				this.oneItemMap.put(e.getKey(), new Header(e.getValue(), e.getKey()));				
+				this.oneItemMap.put(e.getKey(), new Header(e.getKey(), e.getValue()));				
 			}
 		}
 	}

@@ -24,11 +24,11 @@ public class Run {
 	
 	private static void processInput(String inputFile, String outputFile, int support) {
 		try {
-			System.out.println("Using FPGrowth apriori...............");
+			System.out.println("Using FPGrowth...............");
 			Preprocessor preprocessor = new Preprocessor();
 			preprocessor.generateItems(inputFile, support);
-			FPGrowth fpGrowth = new FPGrowth(preprocessor.getOneItemMap());
-			fpGrowth.fpGrowth(preprocessor.getTransList());
+			FPGrowth fpGrowth = new FPGrowth(preprocessor.getOneItemMap(), support);
+			fpGrowth.fpGrowth(preprocessor.getTransList(), outputFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

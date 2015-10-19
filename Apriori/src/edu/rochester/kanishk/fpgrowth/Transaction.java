@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import edu.rochester.kanishk.Constants;
-import edu.rochester.kanishk.fpgrowth.Item;
-import edu.rochester.kanishk.fpgrowth.Item.Header;
 
 public class Transaction {
 	List<Item> itemList;

@@ -57,80 +57,8 @@ public class Item implements Comparable<Item> {
 		return compareTo(o) < 0;
 	}
 	
-	/** A header class that maintains 1-frequent item set and also
-	 * chain of node links for tree traversal*/
-	public static class Header implements Comparable<Header> {
-		private int count;
-		private Item item;
-		private List<FPTreeNode> chainLinks;
-		
-		public Header(int count, Item item) {
-			this.count = count;
-			this.item = item;
-			this.chainLinks = new ArrayList<>();
-		}
-
-		public int getCount() {
-			return count;
-		}
-		
-		public void incrementCount() {
-			this.count++;
-		}
-
-		public Item getItem() {
-			return item;
-		}
-		
-		//Adding the node to link it with its header table
-		public void addChainLinks(FPTreeNode node) {
-			for(FPTreeNode n : chainLinks) {
-				if(n == node) {
-					return;
-				}
-			}
-			this.chainLinks.add(node);
-		}
-
-		@Override
-		public int hashCode() {
-			return item.hashCode();
-		}
-
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			for(FPTreeNode i : chainLinks) {
-				Item item = i.getTreeItem();
-				sb.append("-->").append(item.itemType).append(":").append(i.count);
-			}
-			return sb.toString();
-		}
-		
-		public void print() {
-			System.out.println(toString());
-		}
-		
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Header other = (Header) obj;
-			if (item == null) {
-				if (other.item != null)
-					return false;
-			} else if (!item.equals(other.item))
-				return false;
-			return true;
-		}
-
-		@Override
-		public int compareTo(Header o) {
-			return Integer.compare(count, o.count);
-		}
+	@Override
+	public String toString() {
+		return this.itemType;
 	}
-	
 }

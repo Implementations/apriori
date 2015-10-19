@@ -1,12 +1,12 @@
 package edu.rochester.kanishk.fpgrowth;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class FPTreeNode {
 	
 	FPTreeNode parent;
-	private List<FPTreeNode> children;
+	private Set<FPTreeNode> children;
 	private Item treeItem;
 	int count;
 	
@@ -16,7 +16,7 @@ public class FPTreeNode {
 	}
 	
 	public FPTreeNode() {
-		this.children = new ArrayList<>();
+		this.children = new LinkedHashSet<>();
 	}
 	
 	public boolean isRoot() {
@@ -32,24 +32,24 @@ public class FPTreeNode {
 		return treeItem.hashCode();
 	}
 	
-	private FPTreeNode insertChild(Item item) {
+	private FPTreeNode insertChild(Item item, int incrementValue) {
 		FPTreeNode node = new FPTreeNode(item);
 		children.add(node);
 		node.parent = this;
-		node.count = 1;
+		node.count = incrementValue;
 		return node;
 	}
 	
 	/**Traverses the children for the given item. If found, then increment the child counter and return it.
 	 * Otherwise inserts the item as a new child node and return it.*/
-	public FPTreeNode insertAndReturnChild(Item item) {
+	public FPTreeNode insertAndReturnChild(Item item, int incrementValue) {
 		for(FPTreeNode node : children) {
 			if(node.treeItem.equals(item)) {
-				node.count += 1;
+				node.count += incrementValue;
 				return node;
 			}
 		}
-		return insertChild(item);
+		return insertChild(item, incrementValue);
 	}
 
 	@Override
@@ -67,5 +67,19 @@ public class FPTreeNode {
 		} else if (!treeItem.equals(other.treeItem))
 			return false;
 		return true;
+	}
+	
+	/**Removes this node from the tree by dereferencing itself from parent and removing
+	 * itself from parent's child set.
+	 */
+	public void removeNode() {
+		this.parent.children.remove(this);
+		this.parent = null;
+		this.children.removeAll(children);
+	}
+	
+	@Override
+	public String toString() {
+		return this.count + "::" + treeItem.toString();
 	}
 }
