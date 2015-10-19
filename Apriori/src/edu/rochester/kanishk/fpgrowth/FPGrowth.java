@@ -49,6 +49,12 @@ public class FPGrowth {
 		headers.addAll(oneItemSet.values());
 		Collections.sort(headers);
 		for (Header h : headers) {
+			ItemSet i = new ItemSet();
+			i.count = h.getCount();
+			i.addItem(h.getItem());
+			List<ItemSet> list = new ArrayList<>();
+			list.add(i);
+			writeLineToFile(list);
 			fpPatternAndTree(h);
 		}
 	}
