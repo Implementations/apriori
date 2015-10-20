@@ -48,6 +48,7 @@ public class FPGrowth {
 		List<Header> headers = new ArrayList<>();
 		headers.addAll(oneItemSet.values());
 		Collections.sort(headers);
+		// Write 1-frequent itemset to the file
 		for (Header h : headers) {
 			ItemSet i = new ItemSet();
 			i.count = h.getCount();
@@ -59,6 +60,7 @@ public class FPGrowth {
 		}
 	}
 
+	//Create an FP-tree from the 1-frequent itemsets and list of transactions
 	private void insertItems(FPTreeNode current, List<Item> transactionItems, Map<Item, Header> oneItemSet,
 			int baseCount) {
 		for (Item item : transactionItems) {
@@ -75,10 +77,8 @@ public class FPGrowth {
 
 	// Filter and generate conditional FP-tree
 	private void fpPatternAndTree(Header header) throws IOException {
-		List<FPTreeNode> linkedNodes = header.getChainLinks(); // Header
-																// contains is a
-																// single item
-																// type
+		List<FPTreeNode> linkedNodes = header.getChainLinks(); 
+		// Header contains is a single item type
 		Map<Item, Header> oneItemSet = new HashMap<>();
 		FPTreeNode root = new FPTreeNode();
 		for (FPTreeNode node : linkedNodes) {
@@ -119,14 +119,17 @@ public class FPGrowth {
 			/* This single node count is greater than support count so all the subsets formed with
 			 * its ancestors will also be a frequent itemsets. 
 			 */
-			List<FPTreeNode> powerSetList = new ArrayList<>();
 			FPTreeNode current = node.parent;
-			while (current != conditionalRoot) {
-				powerSetList.add(current);
-				current = current.parent;
-			}
-			if (!powerSetList.isEmpty()) {
-				generatePatterns(node, itemHeader, fpItemSet, powerSetList);
+			if (node.count >= supportCount && current != conditionalRoot) {
+				// Generate all powersets of the branch above the node
+				List<FPTreeNode> powerSetList = new ArrayList<>();
+				while (current != conditionalRoot) {
+					powerSetList.add(current);
+					current = current.parent;
+				}
+				if (!powerSetList.isEmpty()) {
+					generatePatterns(node, itemHeader, fpItemSet, powerSetList);
+				}
 			}
 		}
 		writeLineToFile(fpItemSet.values());
@@ -160,7 +163,7 @@ public class FPGrowth {
 			}
 		}
 	}
-
+	
 	private List<List<Item>> getPowerSet(List<FPTreeNode> powerSet) {
 		int powerSetSize = (int) Math.pow(2, powerSet.size());
 		int counter = 0, j = 0, size = powerSet.size();
